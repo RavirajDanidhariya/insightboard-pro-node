@@ -18,3 +18,17 @@
   - auth.controller - logic and validation here
   - auth.service - return statement with exact response here
   - auth.validaion - validations for auth payloads
+
+
+- Install prisma client and prisma
+    - npm i -D prisma
+    - npm i @prisma/client
+    - npx prisma init 
+      - created schema.prisma and prisma.config.ts file
+      - adds DATABASE_URL variable in env
+    - npx prisma db pull 
+    - npx prisma migrate dev --name init_user
+    - npx prisma studio
+    - npx prisma generate - this is very crusial step, for js files we need to take care of provider in schema.prisma file
+    
+    

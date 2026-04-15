@@ -1,7 +1,7 @@
 const { z } = require('zod')
 
 const registerShema = z.object({
-  email: z.string().trim().email('Invalid email format'),
+  email: z.string().trim().email('Invalid email format').toLowerCase(),
   password: z
     .string()
     .min(8, 'Password must be at leat 8 characters')

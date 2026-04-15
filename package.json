@@ -14,6 +14,8 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@prisma/adapter-pg": "^7.7.0",
+    "@prisma/client": "^7.7.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "zod": "^4.3.6"
@@ -22,6 +24,7 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.2.0",
     "globals": "^17.5.0",
-    "prettier": "^3.8.3"
+    "prettier": "^3.8.3",
+    "prisma": "^7.7.0"
   }
 }

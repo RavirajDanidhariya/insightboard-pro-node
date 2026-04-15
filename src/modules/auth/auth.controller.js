@@ -2,10 +2,15 @@ const { ZodError } = require('zod')
 const { registerShema, loginSchema } = require('./auth.validation')
 const { registerUser, loginUser } = require('./auth.service')
 
-function register(req, res, next) {
+async function register(req, res) {
   try {
     const parsed = registerShema.parse(req.body)
-    const result = registerUser(parsed)
+    const result = await registerUser(parsed)
+    // TODO: Rate limiting
+    // TODO: Email verification link
+    // TODO: disposable email domains block (optional.com, tempmail.com etc)
+
+    console.log('controller result', result)
 
     return res.status(201).json({
       success: true,
@@ -26,7 +31,15 @@ function register(req, res, next) {
         }
       })
     }
-    return next(error)
+    if (error.message && error.message.includes('Email already registered')) {
+      return res.status(409).json({
+        success: false,
+        error: {
+          code: 'CONFLICT',
+          message: 'Email already registered'
+        }
+      })
+    }
   }
 }
 
