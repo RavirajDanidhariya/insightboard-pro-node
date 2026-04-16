@@ -1,10 +1,26 @@
-const { findUserByEmail, createUser } = require('./auth.repository')
+const {
+  findUserByEmail,
+  findUserById,
+  createUser,
+  createRefreshToken,
+  findRefreshToken,
+  deleteRefreshToken
+} = require('./auth.repository')
+
+const {
+  generateAccessToken,
+  generateRefreshToken,
+  getRefreshExpiryDate,
+  verifyRefreshToken
+} = require('../../common/utils/token.utils')
 
 async function registerUser(input) {
   const existing = await findUserByEmail(input.email)
 
   if (existing) {
-    throw new Error('Email already registered')
+    const error = new Error('Email already registered')
+    error.code = 'EMAIL_CONFLICT'
+    throw error
   }
 
   const user = await createUser({
@@ -13,7 +29,14 @@ async function registerUser(input) {
     displayName: input.displayName
   })
 
-  console.log('service saved user', user)
+  const accessToken = generateAccessToken(user)
+  const refreshToken = generateRefreshToken(user)
+
+  await createRefreshToken({
+    token: refreshToken,
+    userId: user.id,
+    expiresAt: getRefreshExpiryDate()
+  })
 
   return {
     user: {
@@ -21,25 +44,104 @@ async function registerUser(input) {
       email: user.email,
       displayName: user.displayName
     },
-    accessToken: 'mock_access_token',
-    refreshToken: 'mock_refresh_token'
+    accessToken,
+    refreshToken
   }
 }
 
-function loginUser(input) {
+async function loginUser(input) {
   // mock behaviour for now
+
+  const user = await findUserByEmail(input.email)
+
+  if (!user) {
+    const error = new Error('Invalid email or password')
+    error.code = 'INVALID_CREDENTIALS'
+    throw error
+  }
+
+  if (user.passwordHash !== input.password) {
+    const error = new Error('Invalid email or password')
+    error.code = 'INVALID_CREDENTIALS'
+    throw error
+  }
+
+  const accessToken = generateAccessToken(user)
+  const refreshToken = generateRefreshToken(user)
+
+  await createRefreshToken({
+    token: refreshToken,
+    userId: user.id,
+    expiresAt: getRefreshExpiryDate()
+  })
+
   return {
     user: {
-      id: 1,
-      email: input.email,
-      displayName: 'Raviraj Danidhariya'
+      id: user.id,
+      email: user.email,
+      displayName: user.displayName
     },
-    accessToken: 'mock_access_token',
-    refreshToken: 'mock_refresh_token'
+    accessToken,
+    refreshToken
   }
+}
+
+async function refreshAuthToken(input) {
+  const stored = await findRefreshToken(input.refreshToken)
+  if (!stored) {
+    const err = new Error('Invalid refresh token')
+    err.code = 'INVALID_REFRESH_TOKEN'
+    throw err
+  }
+
+  if (stored.expiresAt < new Date()) {
+    await deleteRefreshToken(input.refreshToken)
+    const err = new Error('Refresh token expired')
+    err.code = 'REFRESH_TOKEN_EXPIRED'
+    throw err
+  }
+
+  let payload
+  try {
+    payload = verifyRefreshToken(input.refreshToken)
+  } catch {
+    const err = new Error('Invalid refresh token')
+    err.code = 'INVALID_REFRESH_TOKEN'
+    throw err
+  }
+
+  const user = await findUserById(payload.sub)
+  if (!user) {
+    const err = new Error('User not found')
+    err.code = 'USER_NOT_FOUND'
+    throw err
+  }
+
+  const accessToken = generateAccessToken(user)
+  return { accessToken }
+}
+
+async function logoutUser(input) {
+  await deleteRefreshToken(input.refreshToken)
+  return { message: 'Logged out successfully' }
+}
+
+async function getCurrentUserProfile(userId) {
+  const user = await findUserById(userId)
+
+  if (!user) {
+    const err = new Error('User not found')
+    err.code = 'USER_NOT_FOUND'
+    throw err
+  }
+
+  return user
 }
 
 module.exports = {
   registerUser,
-  loginUser
+  loginUser,
+  refreshAuthToken,
+  logoutUser,
+  getCurrentUserProfile
 }
