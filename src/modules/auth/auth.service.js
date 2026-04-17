@@ -1,3 +1,4 @@
+const bcrypt = require('bcryptjs')
 const {
   findUserByEmail,
   findUserById,
@@ -23,29 +24,33 @@ async function registerUser(input) {
     throw error
   }
 
+  const passwordHash = await bcrypt.hash(input.password, 10)
+
   const user = await createUser({
     email: input.email,
-    passwordHash: input.password,
+    passwordHash,
     displayName: input.displayName
   })
 
-  const accessToken = generateAccessToken(user)
-  const refreshToken = generateRefreshToken(user)
+  // const accessToken = generateAccessToken(user)
+  // const refreshToken = generateRefreshToken(user)
 
-  await createRefreshToken({
-    token: refreshToken,
-    userId: user.id,
-    expiresAt: getRefreshExpiryDate()
-  })
+  // await createRefreshToken({
+  //   token: refreshToken,
+  //   userId: user.id,
+  //   expiresAt: getRefreshExpiryDate()
+  // })
 
   return {
     user: {
       id: user.id,
       email: user.email,
-      displayName: user.displayName
-    },
-    accessToken,
-    refreshToken
+      displayName: user.displayName,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    }
+    // accessToken,
+    // refreshToken
   }
 }
 
@@ -60,7 +65,12 @@ async function loginUser(input) {
     throw error
   }
 
-  if (user.passwordHash !== input.password) {
+  const isPasswordValid = await bcrypt.compare(
+    input.password,
+    user.passwordHash
+  )
+
+  if (!isPasswordValid) {
     const error = new Error('Invalid email or password')
     error.code = 'INVALID_CREDENTIALS'
     throw error
@@ -86,8 +96,8 @@ async function loginUser(input) {
   }
 }
 
-async function refreshAuthToken(input) {
-  const stored = await findRefreshToken(input.refreshToken)
+async function refreshAuthToken(refreshToken) {
+  const stored = await findRefreshToken(refreshToken)
   if (!stored) {
     const err = new Error('Invalid refresh token')
     err.code = 'INVALID_REFRESH_TOKEN'
@@ -95,7 +105,7 @@ async function refreshAuthToken(input) {
   }
 
   if (stored.expiresAt < new Date()) {
-    await deleteRefreshToken(input.refreshToken)
+    await deleteRefreshToken(refreshToken)
     const err = new Error('Refresh token expired')
     err.code = 'REFRESH_TOKEN_EXPIRED'
     throw err
@@ -103,7 +113,7 @@ async function refreshAuthToken(input) {
 
   let payload
   try {
-    payload = verifyRefreshToken(input.refreshToken)
+    payload = verifyRefreshToken(refreshToken)
   } catch {
     const err = new Error('Invalid refresh token')
     err.code = 'INVALID_REFRESH_TOKEN'
@@ -121,8 +131,8 @@ async function refreshAuthToken(input) {
   return { accessToken }
 }
 
-async function logoutUser(input) {
-  await deleteRefreshToken(input.refreshToken)
+async function logoutUser(refreshToken) {
+  await deleteRefreshToken(refreshToken)
   return { message: 'Logged out successfully' }
 }
 

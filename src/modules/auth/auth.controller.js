@@ -40,8 +40,8 @@ async function register(req, res) {
     // TODO: Email verification link
     // TODO: disposable email domains block (optional.com, tempmail.com etc)
 
-    res.cookie(REFRESH_COOKIE_NAME, result.refreshToken, refreshCookieOptions)
-    res.cookie(ACCESS_COOKIE_NAME, result.accessToken, accessTokenCookieOptions)
+    // res.cookie(REFRESH_COOKIE_NAME, result.refreshToken, refreshCookieOptions)
+    // res.cookie(ACCESS_COOKIE_NAME, result.accessToken, accessTokenCookieOptions)
 
     return res.status(201).json({
       success: true,
@@ -102,7 +102,7 @@ async function getRefreshedAuthToken(req, res, next) {
     }
     const result = await refreshAuthToken(incomingRefreshToken)
 
-    res.cookie(REFRESH_COOKIE_NAME, result.refreshToken, refreshCookieOptions)
+    res.cookie(ACCESS_COOKIE_NAME, result.accessToken, accessTokenCookieOptions)
 
     return res.status(200).json({
       success: true,
@@ -129,7 +129,6 @@ async function getRefreshedAuthToken(req, res, next) {
 async function logout(req, res, next) {
   try {
     const incomingRefreshToken = req.cookies?.[REFRESH_COOKIE_NAME]
-    console.log('incomingRefreshToken', incomingRefreshToken)
     if (incomingRefreshToken) {
       await logoutUser(incomingRefreshToken)
     }
@@ -150,7 +149,6 @@ async function logout(req, res, next) {
 
 async function getCurrentUser(req, res) {
   try {
-    console.log(req.user)
     const userId = req.user.id
     const user = await getCurrentUserProfile(userId)
 

@@ -13,7 +13,7 @@ const router = express.Router()
 
 router.post('/register', register)
 router.post('/login', login)
-router.post('/login', getRefreshedAuthToken)
+router.get('/refresh', getRefreshedAuthToken)
 router.post('/logout', logout)
 router.get('/me', requireAuth, getCurrentUser)
 

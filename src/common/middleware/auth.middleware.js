@@ -21,7 +21,6 @@ function requireAuth(req, res, next) {
         .json({ code: 'UNAUTHORIZED', message: 'Unauthorized' })
     }
     const payload = verifyAccessToken(accessToken)
-    console.log('auth middleware user', payload)
     req.user = { id: payload.sub, email: payload.email }
     return next()
   } catch {
