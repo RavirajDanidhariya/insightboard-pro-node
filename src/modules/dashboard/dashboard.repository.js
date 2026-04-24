@@ -185,8 +185,39 @@ async function getCategoryBreakdownRepository({ userId, dateFrom, dateTo }) {
   })
 }
 
+async function getStatusDistrubutionRepository({ userId, dateFrom, dateTo }) {
+  const where = { userId }
+
+  const from = ensureDate(dateFrom, 'from')
+  const to = ensureDate(dateTo, 'to')
+
+  if (from || to) {
+    where.transactionDate = {}
+
+    if (from) where.transactionDate.gte = from
+    if (to) where.transactionDate.lte = to
+  }
+
+  const rows = await prisma.transaction.groupBy({
+    by: ['status'],
+    where,
+    _sum: { amount: true },
+    _count: { _all: true },
+    orderBy: { status: 'desc' }
+  })
+
+  return rows.map((row) => {
+    return {
+      status: String(row.status).toLowerCase(),
+      count: row._count.all,
+      amount: Number(toNumber(row._sum.amount).toFixed(2))
+    }
+  })
+}
+
 module.exports = {
   getDashboardMetricsRepository,
   getRevenueTrendRepository,
-  getCategoryBreakdownRepository
+  getCategoryBreakdownRepository,
+  getStatusDistrubutionRepository
 }
