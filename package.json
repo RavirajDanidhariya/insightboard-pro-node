@@ -8,6 +8,7 @@
     "format": "prettier --write .",
     "lint": "eslint . ",
     "lint:fix": "eslint . --fix ",
+    "seed:transactions": "node prisma/seed/transactions.seed.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Raviraj Danidhariya",

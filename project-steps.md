@@ -32,3 +32,10 @@
     - npx prisma generate - this is very crusial step, for js files we need to take care of provider in schema.prisma file
     
     
+
+## Transaction Module and Tables
+
+- add enum TransactionType, enum TransationStatus and model Transaction in the Schema.prisma file
+- add relation in User table
+- npx prisma migrate dev --name add_transactions
+- npx prisma generate

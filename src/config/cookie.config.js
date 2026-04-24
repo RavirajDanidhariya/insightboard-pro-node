@@ -5,7 +5,7 @@ const refreshCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'node' : 'lax',
-  path: '/api/v1/auth',
+  path: '/',
   maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
 }
 
@@ -13,14 +13,14 @@ const refreshCookieClearOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'node' : 'lax',
-  path: '/api/v1/auth'
+  path: '/'
 }
 
 const accessTokenCookieOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'node' : 'lax',
-  path: '/api/v1/auth',
+  path: '/',
   maxAge: 15 * 60 * 1000 // 15 minutes
 }
 
@@ -28,7 +28,7 @@ const accessTokenCookieClearOptions = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: process.env.NODE_ENV === 'production' ? 'node' : 'lax',
-  path: '/api/v1/auth'
+  path: '/'
 }
 
 module.exports = {
