@@ -2,7 +2,8 @@ const {
   getDashboardMetricsService,
   getRevenueTrendService,
   getCategoryBreakdownService,
-  getStatusDistrubutionService
+  getStatusDistrubutionService,
+  getRegionBreakdownService
 } = require('./dashboard.service')
 
 async function getDashboardMetrics(req, res, next) {
@@ -125,9 +126,41 @@ async function getStatusDistrubution(req, res, next) {
   }
 }
 
+//
+
+async function getRegionBreakdown(req, res, next) {
+  try {
+    const userId = req.user?.id
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        code: 'UNAUTHORIZED',
+        message: 'Unauthorized'
+      })
+    }
+
+    const { dateFrom, dateTo } = req.query
+
+    const data = await getRegionBreakdownService({
+      userId,
+      dateFrom,
+      dateTo
+    })
+
+    return res.status(200).json({
+      success: true,
+      data,
+      message: 'Category breakdown fetched successfully'
+    })
+  } catch (error) {
+    return next(error)
+  }
+}
+
 module.exports = {
   getDashboardMetrics,
   getRevenueTrend,
   getCategoryBreakdown,
-  getStatusDistrubution
+  getStatusDistrubution,
+  getRegionBreakdown
 }

@@ -215,9 +215,50 @@ async function getStatusDistrubutionRepository({ userId, dateFrom, dateTo }) {
   })
 }
 
+async function getRegionBreakdownRepository({ userId, dateFrom, dateTo }) {
+  const where = { userId }
+
+  const from = ensureDate(dateFrom, 'from')
+  const to = ensureDate(dateTo, 'to')
+  if (from || to) {
+    where.transactionDate = {}
+
+    if (from) where.transactionDate.gte = from
+    if (to) where.transactionDate.lte = to
+  }
+
+  const rows = await prisma.transaction.groupBy({
+    by: ['country'],
+    where,
+    _sum: { amount: true },
+    _count: { _all: true },
+    orderBy: { _sum: { amount: 'desc' } }
+  })
+
+  const totalRevenue = rows.reduce(
+    (sum, row) => sum + toNumber(row._sum.amount),
+    0
+  )
+
+  return rows.map((row) => {
+    const revenue = toNumber(row._sum.amount)
+    const percentage = totalRevenue
+      ? Number(((revenue / totalRevenue) * 100).toFixed(2))
+      : 0
+
+    return {
+      country: String(row.country),
+      revenue: Number(revenue.toFixed(2)),
+      transactionCount: row._count.all,
+      percentage
+    }
+  })
+}
+
 module.exports = {
   getDashboardMetricsRepository,
   getRevenueTrendRepository,
   getCategoryBreakdownRepository,
-  getStatusDistrubutionRepository
+  getStatusDistrubutionRepository,
+  getRegionBreakdownRepository
 }

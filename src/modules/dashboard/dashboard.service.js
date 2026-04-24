@@ -2,7 +2,8 @@ const {
   getDashboardMetricsRepository,
   getRevenueTrendRepository,
   getCategoryBreakdownRepository,
-  getStatusDistrubutionRepository
+  getStatusDistrubutionRepository,
+  getRegionBreakdownRepository
 } = require('./dashboard.repository')
 
 function ensureValidate(dateValue, fieldName) {
@@ -106,9 +107,23 @@ async function getStatusDistrubutionService({ userId, dateFrom, dateTo }) {
   return getStatusDistrubutionRepository({ userId, dateFrom, dateTo })
 }
 
+async function getRegionBreakdownService({ userId, dateFrom, dateTo }) {
+  assertDate(dateFrom, 'dateFrom')
+  assertDate(dateTo, 'dateTo')
+
+  if (dateFrom && dateTo && new Date(dateFrom) > new Date(dateTo)) {
+    const error = new Error('dateFrom cannot be greater than dateTo')
+    error.statusCode = 400
+    error.code = 'VALIDATION_ERROR'
+    throw error
+  }
+  return getRegionBreakdownRepository({ userId, dateFrom, dateTo })
+}
+
 module.exports = {
   getDashboardMetricsService,
   getRevenueTrendService,
   getCategoryBreakdownService,
-  getStatusDistrubutionService
+  getStatusDistrubutionService,
+  getRegionBreakdownService
 }
