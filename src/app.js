@@ -9,6 +9,7 @@ const healthRouter = require('./modules/health/health.routes')
 const authRouter = require('./modules/auth/auth.routes')
 const transactionsRouter = require('./modules/transaction/transaction.routes')
 const dashboardRouter = require('./modules/dashboard/dashboard.routes')
+const exportRouter = require('./modules/exports/exports.routes')
 
 // Build in middleware
 
@@ -31,6 +32,7 @@ app.use('/health', healthRouter)
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/transactions', transactionsRouter)
 app.use('/api/v1/dashboard', dashboardRouter)
+app.use('/api/v1/exports', exportRouter)
 
 app.use(require('./common/middleware/errorHandler.middleware').errorHanlder)
 
