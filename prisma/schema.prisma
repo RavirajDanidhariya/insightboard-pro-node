@@ -96,7 +96,8 @@ model Export {
   status        String     @default("ready")
   recordCount   Int        @default(0)
   filters       Json  
-  fileContent   String     @db.Text
+  fileContent   String?     @db.Text
+  storagePath   String?
   expiresAt     DateTime  
   createdAt     DateTime   @default(now())
 }
