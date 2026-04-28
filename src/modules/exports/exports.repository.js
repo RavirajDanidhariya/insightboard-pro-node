@@ -61,6 +61,7 @@ const createExportRecord = async ({
   recordCount,
   filters,
   fileContent,
+  storagePath,
   expiresAt
 }) => {
   return prisma.export.create({
@@ -71,6 +72,7 @@ const createExportRecord = async ({
       recordCount,
       filters,
       fileContent,
+      storagePath,
       expiresAt,
       status: 'ready'
     }

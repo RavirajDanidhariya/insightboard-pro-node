@@ -1,4 +1,10 @@
+const { randomUUID } = require('crypto')
 const { generateCsvContent } = require('../../common/utils/csv.utils')
+const {
+  uploadCsvFile,
+  downloadFileBuffer,
+  deleteFile
+} = require('../../common/utils/storage.utils')
 const {
   fetchTransactionsForExport,
   countTransactionsForExport,
@@ -12,7 +18,7 @@ const {
 const previewExportService = async (userId, body) => {
   const limit = Math.min(parseInt(body.limit, 10) || 100, 500)
   const filters = {
-    status: body.status,
+    status: body.status || '',
     category: body.category,
     dateRange: body.dateRange
   }
@@ -51,8 +57,14 @@ const createExportService = async (userId, body) => {
   const fileContent = generateCsvContent(transactions)
   const recordCount = transactions.length
   const today = new Date().toISOString().slice(0, 10)
+  const fileId = randomUUID()
+  const storagePath = `users/${userId}/${fileId}.csv`
   const name = `Transactions_${today}.csv`
-  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+  await uploadCsvFile({
+    path: storagePath,
+    content: fileContent
+  })
   const record = await createExportRecord({
     userId,
     name,
@@ -60,6 +72,7 @@ const createExportService = async (userId, body) => {
     recordCount,
     filters,
     fileContent,
+    storagePath,
     expiresAt
   })
   return {
@@ -103,14 +116,20 @@ const downloadExportService = async (userId, exportId) => {
     error.code = 'EXPORT_EXPIRED'
     throw error
   }
-  return {
-    fileContent: record.fileContent,
-    name: record.name,
-    format: record.format
+  if (record.storagePath) {
+    const fileBuffer = await downloadFileBuffer(record.storagePath)
+    return {
+      fileBuffer,
+      name: record.name,
+      format: record.format
+    }
   }
-}
 
-// Delete Export
+  const error = new Error('Export file is missing')
+  error.statusCode = 404
+  error.code = 'EXPORT_FILE_MISSING'
+  throw error
+}
 const deleteExportService = async (userId, exportId) => {
   const record = await findExportById(exportId, userId)
   if (!record) {
@@ -119,9 +138,11 @@ const deleteExportService = async (userId, exportId) => {
     error.code = 'NOT_FOUND'
     throw error
   }
+  if (record.storagePath) {
+    await deleteFile(record.storagePath)
+  }
   await deleteExportById(exportId, userId)
 }
-
 module.exports = {
   previewExportService,
   createExportService,

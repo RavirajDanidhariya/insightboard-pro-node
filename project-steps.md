@@ -39,3 +39,12 @@
 - add relation in User table
 - npx prisma migrate dev --name add_transactions
 - npx prisma generate
+
+
+
+## SUPABASE Implementation:
+
+- npm i @supabase/supabase-js
+SUPABASE_BUCKET=""
+SUPABASE_URL=""
+SUPABASE_SERVICE_ROLE_KEY=""

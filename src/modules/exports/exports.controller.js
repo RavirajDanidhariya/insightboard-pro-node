@@ -40,10 +40,10 @@ const downloadExport = async (req, res, next) => {
   try {
     const userId = req.user?.id
     const { id } = req.params
-    const { fileContent, name } = await downloadExportService(userId, id)
-    res.setHeader('Content-Type', 'text/csv')
+    const { fileBuffer, name } = await downloadExportService(userId, id)
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
     res.setHeader('Content-Disposition', `attachment; filename="${name}"`)
-    return res.status(200).send(fileContent)
+    return res.status(200).send(fileBuffer.data)
   } catch (error) {
     return next(error)
   }
